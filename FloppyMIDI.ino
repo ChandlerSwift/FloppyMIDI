@@ -13,6 +13,7 @@ const byte midiNoteOn  = B10010000;
 const float noteFreqs[] = {261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 523.2};
 
 // https://www.midikits.net/midi_analyser/midi_note_numbers_for_octaves.htm
+// C_4 to C_5
 const int rangeMin = 60;
 const int rangeMax = 72; 
 
@@ -24,12 +25,16 @@ byte nowPlaying;
 
 bool isPlaying = false;
 int headPosition = 0; // Starts at 0
-const int tracks = 100; // TODO: is this the case?
-bool forward = true;
+const int numTracks = 100; // TODO: is this the case?
+bool forward = false; // what direction are we going?
 
 void setup() {
     // setup SoftSerial for MIDI control
     midiIn.begin(31250);
+    pinMode(directionPin, OUTPUT);
+    digitalWrite(directionPin, forward); // TODO: is this the correct starting direction?
+    pinMode(stepPin, OUTPUT);
+    digitalWrite(stepPin, HIGH);
 }
 
 void loop () {
@@ -47,14 +52,31 @@ void loop () {
         }
 
         if (midiCommand == midiNoteOff) {
-          if (midiIn.read() == nowPlaying)
+          if (midiIn.read() == nowPlaying) // Make sure it's the note we care about
             isPlaying = false;
         }
 
     }
 
     if (nowPlaying) {
-      delayMicroseconds(1000000/noteFreqs[midiCommand - 60]);
+      // limits
+      if (headPosition >= numTracks) {
+        forward = true;
+        digitalWrite(directionPin, LOW);
+      }
+      else if (headPosition <= 0) {
+        forward = false;
+        digitalWrite(directionPin, HIGH);
+      }
+
+      // step
+      digitalWrite(stepPin, LOW);
+      delayMicroseconds(10);
+      digitalWrite(stepPin, HIGH);
+      delayMicroseconds(10);
+      headPosition += (forward ? 1 : -1);
+      
+      delayMicroseconds(2*1000000/noteFreqs[midiCommand - 60] - 20); // TODO: remove octave shift?
     }
 
 }
