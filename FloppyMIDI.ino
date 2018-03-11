@@ -1,7 +1,8 @@
 #include <SoftwareSerial.h>
 SoftwareSerial midiIn(10, 16); // RX, TX (though we don't use midi out)
 
-int directionPin = 
+const int directionPin = 2;
+const int stepPin = 3;
 
 // https://www.midi.org/specifications/item/table-1-summary-of-midi-message
 const byte midiNoteOff = B10000000;
@@ -9,7 +10,7 @@ const byte midiNoteOn  = B10010000;
 
 // https://pages.mtu.edu/~suits/notefreqs.html
 // C_4 to C_5
-const float noteFreqs = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 523.25];
+const float noteFreqs[] = {261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 523.2};
 
 // https://www.midikits.net/midi_analyser/midi_note_numbers_for_octaves.htm
 const int rangeMin = 60;
@@ -53,7 +54,7 @@ void loop () {
     }
 
     if (nowPlaying) {
-      delayMicroseconds(1000000/noteFreqs[midiCommand - 60]
+      delayMicroseconds(1000000/noteFreqs[midiCommand - 60]);
     }
 
 }
