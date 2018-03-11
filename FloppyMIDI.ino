@@ -74,12 +74,12 @@ void loop () {
 
       // step
       digitalWrite(stepPin, LOW);
-      delayMicroseconds(10);
+      delayMicroseconds(1000);
       digitalWrite(stepPin, HIGH);
-      delayMicroseconds(10);
+      delayMicroseconds(1000);
       headPosition += (forward ? 1 : -1);
       
-      delayMicroseconds(2*1000000/noteFreqs[midiCommand - 60] - 20); // TODO: remove octave shift?
+      delayMicroseconds(2*1000000/noteFreqs[midiCommand - 60] - 2000); // TODO: remove octave shift?
     }
 
 }
