@@ -46,9 +46,12 @@ void loop () {
         // midiChannel = midiByte & B00001111; // 4 least significant bits
 
         if (midiCommand == midiNoteOn) {
-          isPlaying = true;
-          nowPlaying = midiIn.read();
-          // volume = midiIn.read(); // TODO
+          midiByte = midiIn.read();
+          if (midiByte > rangeMin && midiByte < rangeMax) {
+            isPlaying = true;
+            nowPlaying = midiByte;
+            // volume = midiIn.read(); // TODO
+          }
         }
 
         if (midiCommand == midiNoteOff) {
