@@ -1,5 +1,5 @@
-#include <SoftwareSerial.h>
-SoftwareSerial midiIn(10, 16); // RX, TX (though we don't use midi out)
+
+#include "MIDIUSB.h"
 
 const int directionPin = 2;
 const int stepPin = 3;
@@ -17,51 +17,51 @@ const float noteFreqs[] = {261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.9
 const int rangeMin = 60;
 const int rangeMax = 72; 
 
-byte midiByte;
+midiEventPacket_t midiPacket;
 // byte midiChannel;
 byte midiCommand;
-byte nowPlaying;
+byte nowPlaying = 60;
 // byte volume;
 
 bool isPlaying = false;
 int headPosition = 0; // Starts at 0
-const int numTracks = 100; // TODO: is this the case?
+const int numTracks = 80; // TODO: is this the case?
 bool forward = false; // what direction are we going?
 
 void setup() {
     // setup SoftSerial for MIDI control
-    midiIn.begin(31250);
     pinMode(directionPin, OUTPUT);
     digitalWrite(directionPin, forward); // TODO: is this the correct starting direction?
     pinMode(stepPin, OUTPUT);
     digitalWrite(stepPin, HIGH);
+    Serial.begin(9600);
 }
 
 void loop () {
+    midiPacket = MidiUSB.read();
+    if (midiPacket.header != 0) {
 
-    if (midiIn.available()) {
-
-        midiByte = midiIn.read();
-        midiCommand = midiByte & B11110000; // 4 most significant bits
-        // midiChannel = midiByte & B00001111; // 4 least significant bits
+        // Serial.println(midiPacket, BIN);
+        Serial.println("gotem");
+        midiCommand = midiPacket.byte1 & B11110000;
+        // midiChannel = midiPacket & B00001111; // 4 least significant bits
 
         if (midiCommand == midiNoteOn) {
-          midiByte = midiIn.read();
-          if (midiByte > rangeMin && midiByte < rangeMax) {
+          if (midiPacket.byte2 >= rangeMin && midiPacket.byte2 <= rangeMax) {
             isPlaying = true;
-            nowPlaying = midiByte;
+            nowPlaying = midiPacket.byte2;
             // volume = midiIn.read(); // TODO
           }
         }
 
         if (midiCommand == midiNoteOff) {
-          if (midiIn.read() == nowPlaying) // Make sure it's the note we care about
+          if (midiPacket.byte2 == nowPlaying) // Make sure it's the note we care about
             isPlaying = false;
         }
 
     }
 
-    if (nowPlaying) {
+    if (isPlaying) {
       // limits
       if (headPosition >= numTracks) {
         forward = true;
@@ -74,12 +74,12 @@ void loop () {
 
       // step
       digitalWrite(stepPin, LOW);
-      delayMicroseconds(1000);
+      delayMicroseconds(2000);
       digitalWrite(stepPin, HIGH);
-      delayMicroseconds(1000);
-      headPosition += (forward ? 1 : -1);
-      
-      delayMicroseconds(2*1000000/noteFreqs[midiCommand - 60] - 2000); // TODO: remove octave shift?
+      delayMicroseconds(2000);
+      headPosition += (forward ? -1 : 1);
+      Serial.println(2*1000000/noteFreqs[nowPlaying - 60]);
+      delayMicroseconds(2*1000000/noteFreqs[nowPlaying - 60] - 4000); // TODO: remove octave shift?
     }
 
 }
