@@ -29,6 +29,7 @@ int headPosition = 0; // Starts at 0
 const int numTracks = 80; // TODO: is this the case?
 bool forward = false; // what direction are we going?
 
+// https://pages.mtu.edu/~suits/NoteFreqCalcs.html
 float calcFreq(int note){
   int n = note - 69; // 69 is A4
   int f0 = 440; // 440 is freq of A4
